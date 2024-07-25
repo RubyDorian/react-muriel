@@ -6,12 +6,13 @@ import './App.css';
 import {useGLTF} from '@react-three/drei';
 
 const Box = (props: ThreeElements['mesh']) => {
-    const meshRef = useRef<THREE.Mesh>(null!)
-    const [hovered, setHover] = useState(false)
-    const [active, setActive] = useState(false)
+    const meshRef = useRef<THREE.Mesh>(null!);
+    const [hovered, setHover] = useState(false);
+    const [active, setActive] = useState(false);
     useFrame((_state, delta) => {
         meshRef.current.rotation.x += delta;
-    })
+    });
+
     return (
         <mesh
             {...props}
@@ -27,8 +28,12 @@ const Box = (props: ThreeElements['mesh']) => {
 };
 
 const Mur = (props: ThreeElements['mesh']) => {
-    const groupRef = useRef<THREE.Group>(null);
+    const groupRef = useRef<THREE.Group>(null!);
     const { nodes } = useGLTF('Muriel.glb');
+
+    useFrame((_state, delta) => {
+        groupRef.current.rotation.y += delta;
+    });
 
     return (
         <group ref={groupRef} {...props} dispose={null}>
