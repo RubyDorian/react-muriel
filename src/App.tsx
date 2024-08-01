@@ -1,56 +1,111 @@
-import {useRef, useState} from 'react';
+import {useRef, PropsWithChildren, useEffect} from 'react';
 import * as THREE from 'three'
-import {Canvas, useFrame, ThreeElements} from '@react-three/fiber'
+import {Canvas, useFrame, ThreeElements} from '@react-three/fiber';
+import {PerspectiveCamera} from '@react-three/drei';
 
 import './App.css';
 import {useGLTF} from '@react-three/drei';
 
-const Box = (props: ThreeElements['mesh']) => {
-    const meshRef = useRef<THREE.Mesh>(null!);
-    const [hovered, setHover] = useState(false);
-    const [active, setActive] = useState(false);
-    useFrame((_state, delta) => {
-        meshRef.current.rotation.x += delta;
+const Rotator = (props: ThreeElements['mesh'] & PropsWithChildren) => {
+    const {children, ...rest} = props;
+
+    const groupRef = useRef<THREE.Group>(null!);
+
+    useFrame(({clock}) => {
+        groupRef.current.rotation.y = Math.PI * clock.getElapsedTime();
     });
 
     return (
-        <mesh
-            {...props}
-            ref={meshRef}
-            scale={active ? 1.5 : 1}
-            onClick={() => setActive(!active)}
-            onPointerOver={() => setHover(true)}
-            onPointerOut={() => setHover(false)}>
-            <boxGeometry args={[1, 1, 1]}/>
-            <meshStandardMaterial color={hovered ? 'hotpink' : 'orange'}/>
+        <group ref={groupRef} {...rest}>
+            {children}
+        </group>
+    )
+};
+
+const Lights = (props: ThreeElements['mesh'] & { count: number }) => {
+    const {count, ...rest} = props;
+
+    return (
+        <Rotator {...rest}>
+            {/*{Array(count).map((_, index) => (*/}
+            <pointLight
+                // key={index}
+                position={[0, 20, 0]}
+                intensity={20}
+                distance={100}
+                color={0xffffff}
+            />
+            <pointLight
+                // key={index}
+                position={[20, 0, 0]}
+                intensity={20}
+                distance={100}
+                color={0xffffff}
+            />
+            <pointLight
+                // key={index}
+                position={[0, 0, 20]}
+                intensity={20}
+                distance={100}
+                color={0xffffff}
+            />
+            {/*)}*/}
+        </Rotator>
+    )
+};
+
+const Muriel = (props: ThreeElements['mesh']) => {
+    const {nodes} = useGLTF('Muriel.glb');
+
+    return (
+        <primitive {...props} object={nodes.Scene}/>
+    );
+};
+
+const Plane = () => {
+    return (
+        <mesh rotation={[-Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[20, 20, 4]}/>
+            <meshPhongMaterial
+                color={0xffffff}
+            />
         </mesh>
     )
 };
 
-const Mur = (props: ThreeElements['mesh']) => {
-    const groupRef = useRef<THREE.Group>(null!);
-    const { nodes } = useGLTF('Muriel.glb');
-
-    useFrame((_state, delta) => {
-        groupRef.current.rotation.y += delta;
-    });
+const Camera = (props: ThreeElements['perspectiveCamera']) => {
+    const cameraRef = useRef<THREE.PerspectiveCamera>(null!);
+    useEffect(() => {
+        cameraRef?.current?.lookAt(0, 0, 0);
+    }, []);
 
     return (
-        <group ref={groupRef} {...props} dispose={null}>
-            <primitive object={nodes.Scene}/>
-        </group>
-    )
-}
-
-export const App = () => {
-    return (
-        <Canvas>
-            <ambientLight intensity={Math.PI / 2}/>
-            <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} decay={0} intensity={Math.PI}/>
-            <pointLight position={[-10, -10, -10]} decay={0} intensity={Math.PI}/>
-            <Box position={[-1.2, 0, 0]}/>
-            <Box position={[1.2, 0, 0]}/>
-            <Mur position={[0, 0, 0]}/>
-        </Canvas>
-    )
+        <PerspectiveCamera
+            makeDefault
+            ref={cameraRef}
+            fov={75}
+            near={0.1}
+            far={1000}
+            {...props}
+        />
+    );
 };
+
+const MURIEL_SCALE = 4;
+
+export const App = () => (
+    <Canvas>
+        <Camera
+            position={[10, 10, 10]}
+        />
+        <Lights
+            count={3}
+            position={[-1.2, 0, 0]}
+        />
+        <Plane/>
+        <Muriel
+            position={[0, 0, 0]}
+            scale={[MURIEL_SCALE, MURIEL_SCALE, MURIEL_SCALE]}
+        />
+    </Canvas>
+);
