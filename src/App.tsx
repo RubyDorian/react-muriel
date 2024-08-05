@@ -12,7 +12,7 @@ const Rotator = (props: ThreeElements['mesh'] & PropsWithChildren) => {
     const groupRef = useRef<THREE.Group>(null!);
 
     useFrame(({clock}) => {
-        groupRef.current.rotation.y = Math.PI * clock.getElapsedTime();
+        groupRef.current.rotation.y = Math.PI / 2 * clock.getElapsedTime();
     });
 
     return (
@@ -22,34 +22,29 @@ const Rotator = (props: ThreeElements['mesh'] & PropsWithChildren) => {
     )
 };
 
+const rotateCoords = (coords: number[], angle: number) => {
+    const [x, y, z] = coords;
+    return new THREE.Vector3(
+        x * Math.cos(angle) - z * Math.sin(angle),
+        y,
+        x * Math.sin(angle) + z * Math.cos(angle)
+    );
+};
+
 const Lights = (props: ThreeElements['mesh'] & { count: number }) => {
     const {count, ...rest} = props;
 
     return (
         <Rotator {...rest}>
-            {/*{Array(count).map((_, index) => (*/}
-            <pointLight
-                // key={index}
-                position={[0, 20, 0]}
-                intensity={20}
-                distance={100}
-                color={0xffffff}
-            />
-            <pointLight
-                // key={index}
-                position={[20, 0, 0]}
-                intensity={20}
-                distance={100}
-                color={0xffffff}
-            />
-            <pointLight
-                // key={index}
-                position={[0, 0, 20]}
-                intensity={20}
-                distance={100}
-                color={0xffffff}
-            />
-            {/*)}*/}
+            {Array(count).fill(0).map((_, index) => (
+                <pointLight
+                    key={index}
+                    position={rotateCoords([6, 5, 0], index * 2 * Math.PI / count)}
+                    intensity={10}
+                    distance={100}
+                    color={0xffffff}
+                />
+            ))}
         </Rotator>
     )
 };
@@ -100,12 +95,12 @@ export const App = () => (
         />
         <Lights
             count={3}
-            position={[-1.2, 0, 0]}
         />
         <Plane/>
         <Muriel
             position={[0, 0, 0]}
             scale={[MURIEL_SCALE, MURIEL_SCALE, MURIEL_SCALE]}
+            castShadow={true}
         />
     </Canvas>
 );
