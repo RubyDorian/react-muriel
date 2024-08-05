@@ -1,7 +1,7 @@
 import {useRef, PropsWithChildren, useEffect} from 'react';
 import * as THREE from 'three'
 import {Canvas, useFrame, ThreeElements} from '@react-three/fiber';
-import {PerspectiveCamera} from '@react-three/drei';
+import {OrbitControls, PerspectiveCamera} from '@react-three/drei';
 
 import './App.css';
 import {useGLTF} from '@react-three/drei';
@@ -59,9 +59,15 @@ const Muriel = (props: ThreeElements['mesh']) => {
 
 const Plane = () => {
     return (
-        <mesh rotation={[-Math.PI / 2, 0, 0]}>
-            <planeGeometry args={[20, 20, 4]}/>
+        <mesh
+            rotation={[-Math.PI / 2, 0, 0]}
+            receiveShadow={true}
+        >
+            <planeGeometry
+                args={[20, 20, 4]}
+            />
             <meshPhongMaterial
+                side={THREE.DoubleSide}
                 color={0xffffff}
             />
         </mesh>
@@ -102,5 +108,6 @@ export const App = () => (
             scale={[MURIEL_SCALE, MURIEL_SCALE, MURIEL_SCALE]}
             castShadow={true}
         />
+        <OrbitControls/>
     </Canvas>
 );
